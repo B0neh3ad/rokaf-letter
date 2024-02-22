@@ -39,17 +39,15 @@ class LoginView(APIView):
 
         user = auth.authenticate(**serializer.validated_data)
         if user is not None:
-            try:
-                token = Token.objects.create(user=user)
-            # TODO: 동일한 유저여도 장치(user-agent)가 다르면 토큰 추가 생성 허용하기
-            except IntegrityError as e:
-                return JsonResponse({'error': '이미 또 다른 장치에서 로그인 중입니다. 로그아웃 후 로그인 바랍니다.'})
+            token, _ = Token.objects.get_or_create(user=user)
             return JsonResponse({'token': token.key})
         return HttpResponse(status=status.HTTP_401_UNAUTHORIZED)
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request, *args, **kwargs):
+        # 한 장치에서 로그아웃 시 다같이 로그아웃 됨
+        # TODO: 장치별 로그인/로그아웃 구현
         request.user.auth_token.delete()
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
