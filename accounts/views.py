@@ -1,7 +1,6 @@
 from django.contrib import auth
+from django.db.utils import IntegrityError
 from django.http import JsonResponse, HttpResponse
-from django.shortcuts import render
-from h11 import Response
 from rest_framework import status
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -9,10 +8,10 @@ from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 
 from api.models import User
-from accounts.serializers import RegisterSerializer
+from accounts.serializers import RegisterSerializer, LoginSerializer
+from rokafLetter import settings
 
 
-# Create your views here.
 class SignUpView(CreateAPIView):
     permission_classes = [AllowAny]
     queryset = User.objects.all()
@@ -23,20 +22,28 @@ class SignUpView(CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
-        # user 생성과 동시에 토큰 생성
-        token = Token.objects.create(user=user)
-        serializer.data['token'] = token.key
-
         headers = self.get_success_headers(serializer.data)
         return JsonResponse(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class LoginView(APIView):
     permission_classes = [AllowAny]
+    serializer_class = LoginSerializer
+
+    def get_serializer(self, *args, **kwargs):
+        return self.serializer_class(*args, **kwargs)
+
     def post(self, request, *args, **kwargs):
-        user = auth.authenticate(**request.data)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = auth.authenticate(**serializer.validated_data)
         if user is not None:
-            token = Token.objects.get(user=user)
+            try:
+                token = Token.objects.create(user=user)
+            # TODO: 동일한 유저여도 장치(user-agent)가 다르면 토큰 추가 생성 허용하기
+            except IntegrityError as e:
+                return JsonResponse({'error': '이미 또 다른 장치에서 로그인 중입니다. 로그아웃 후 로그인 바랍니다.'})
             return JsonResponse({'token': token.key})
         return HttpResponse(status=status.HTTP_401_UNAUTHORIZED)
 
