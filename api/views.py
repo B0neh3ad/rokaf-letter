@@ -163,3 +163,13 @@ class LetterViewSet(viewsets.ModelViewSet):
         """
         letter = Letter.objects.get(pk=self.kwargs['letter_id'])
         return letterService.send_letter(letter)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            self.perform_create(serializer)
+        except AssertionError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
