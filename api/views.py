@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import *
 
 from rest_framework import viewsets, mixins, status
-from rest_framework.decorators import action, permission_classes
+from rest_framework.decorators import action, permission_classes, api_view
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
@@ -30,7 +30,7 @@ load_dotenv(verbose=True)
     
 """
 
-@require_GET
+@api_view(['GET'])
 @permission_classes([AllowAny, ])
 def gpt_test(request) -> JsonResponse:
     """
@@ -64,7 +64,7 @@ def gpt_test(request) -> JsonResponse:
 
     return JsonResponse({'content': response})
 
-@require_GET
+@api_view(['GET'])
 @permission_classes([AllowAny, ])
 def search_trainee(request):
     name = request.GET.get('name', None)
