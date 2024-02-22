@@ -51,13 +51,12 @@ class LetterDetailSerializer(serializers.ModelSerializer):
         sender = self.context['request'].user
         receiver = validated_data.get('receiver')
 
-        assert TraineeToUser.objects.get(user=sender.id, trainee=receiver.id), (
-            '내가 추가한 훈련병에게만 편지를 보낼 수 있습니다.'
-        )
-
         # set relationship field
-        relationship = TraineeToUser.objects.get(user=sender.id, trainee=receiver.id).relationship
-        validated_data['relationship'] = relationship
+        try:
+            relationship = TraineeToUser.objects.get(user=sender.id, trainee=receiver.id).relationship
+            validated_data['relationship'] = relationship
+        except TraineeToUser.DoesNotExist:
+            raise AssertionError('내가 추가한 훈련병에게만 편지를 보낼 수 있습니다.')
 
         # set fields about sender
         sender_default_values = {'zipcode': '52364',
@@ -73,11 +72,16 @@ class LetterDetailSerializer(serializers.ModelSerializer):
             if curr_value == "":
                 validated_data['sender' + field.title()] = sender_value if sender_value != "" else default_value
 
-        # set date when status is set to sending
-        if validated_data.get('status') == LetterStatus.SENDING.value:
+
+        status = validated_data.get('status')
+        # set date none when editing
+        if status == LetterStatus.EDITING.value:
+            validated_data['sent_date'] = None
+        # set date today when sending
+        elif status == LetterStatus.SENDING.value:
             validated_data['sent_date'] = datetime.today()
         # validate reservation date
-        elif validated_data.get('status') == LetterStatus.RESERVED.value:
+        elif status == LetterStatus.RESERVED.value:
             assert validated_data['sent_date'] > datetime.today(), (
                 '예약 발송은 내일 이후의 날짜로만 가능합니다.'
             )
