@@ -135,7 +135,7 @@ class Letter(models.Model):
 class TraineeToUser(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     trainee = models.ForeignKey(Trainee, on_delete=models.CASCADE)
-    relationship = models.CharField(max_length=100)
+    relationship = models.CharField(max_length=100, null=True)
 
     def __str__(self):
         return self.trainee.name + " TO " + self.user.email
