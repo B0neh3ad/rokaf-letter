@@ -86,15 +86,35 @@ class TraineeViewSet(mixins.CreateModelMixin,
                    mixins.ListModelMixin,
                    viewsets.GenericViewSet):
     permission_classes = [IsAuthenticated]
-    queryset = Trainee.objects.all()
     serializer_class = TraineeSerializer
+
+    def get_queryset(self):
+        return self.request.user.like_trainees.all()
+
+    # TODO: trainee 추가 시 user와의 관계 설정도 가능하도록 serializer, view 변경
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception = True)
+        try:
+            trainee = serializer.save()
+        except AssertionError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        # create relationship
+        TraineeToUser.objects.create(user = request.user,
+                                     trainee = trainee)
+
+        headers = self.get_success_headers(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 # TODO: 내가 작성한 편지인 경우 바로 편지 수정/삭제/발송 등이 가능하도록 수정
 class LetterViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
-    queryset = Letter.objects.all()
     serializer_class = LetterListSerializer
+
+    def get_queryset(self):
+        return Letter.objects.filter(sender = self.request.user)
 
     def get_serializer_class(self):
         if self.action == 'list':
