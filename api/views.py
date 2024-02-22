@@ -157,12 +157,16 @@ class LetterViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=False, methods=['POST'], url_path=r'(?P<letter_id>\d+)/send')
-    def send(self, request, *args, **kwargs) -> JsonResponse:
+    def send(self, request, *args, **kwargs):
         """
         편지를 보냅니다
         """
         letter = Letter.objects.get(pk=self.kwargs['letter_id'])
-        return letterService.send_letter(letter)
+        try:
+            ret = letterService.send_letter(letter)
+            return Response(ret, status=status.HTTP_200_OK)
+        except CrawlerException as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

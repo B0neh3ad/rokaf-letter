@@ -1,8 +1,6 @@
 from datetime import date
 from api.models import Letter, LetterStatus
 import rokaf_crawler
-from requests.exceptions import HTTPError
-from django.http import JsonResponse
 
 class LetterService:
     @staticmethod
@@ -22,16 +20,13 @@ class LetterService:
                                                          member_seq=receiver.member_seq,
                                                          agency_id=receiver.agency_id)
 
-        try:
-            rokaf_crawler.crawlers.LetterSender(receiver_pydantic, letter_pydantic).send_letter()
-        except HTTPError as e:
-            return JsonResponse({'error': str(e), 'status_code': e.response.status_code})
+        rokaf_crawler.crawlers.LetterSender(receiver_pydantic, letter_pydantic).send_letter()
 
         letter.sent_date = date.today()
         letter.status = LetterStatus.SENDING.value
         letter.save()
 
-        return JsonResponse(letter)
+        return letter
 
 
 letterService = LetterService()
