@@ -8,6 +8,6 @@ router.register(r'letters', views.LetterViewSet, basename='letter_list')
 
 urlpatterns = [
     path('gpt/test/', views.gpt_test, name='gpt_test'),
-    path('trainees/search/', views.search_trainee, name='search_trainee'),
+    path('trainees/search/', views.TraineeSearchView.as_view(), name='search_trainee'),
     path('', include(router.urls)),
 ]

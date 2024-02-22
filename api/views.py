@@ -5,6 +5,7 @@ from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action, permission_classes, api_view
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 import rokaf_crawler
 from rokaf_crawler.exceptions import *
@@ -64,25 +65,24 @@ def gpt_test(request) -> JsonResponse:
 
     return JsonResponse({'content': response})
 
-@api_view(['GET'])
-@permission_classes([AllowAny, ])
-def search_trainee(request):
-    name = request.GET.get('name', None)
-    birthday = request.GET.get('birthday', None)
-    try:
-        agency_id = request.GET.get('agency_id', None)
-    except ValueError as e:
-        return JsonResponse({'error': 'agency_id 값의 형식이 잘못되었습니다.'}, status=400)
+class TraineeSearchView(APIView):
+    permission_classes = [AllowAny]
+    serializer_class = TraineeSearchSerializer
 
-    trainee_pydantic = rokaf_crawler.models.Trainee(name=name, birthday=birthday)
-    if agency_id is not None:
-        trainee_pydantic.agency_id = int(agency_id)
+    def get_serializer(self, *args, **kwargs):
+        return self.serializer_class(*args, **kwargs)
 
-    try:
-        search_result = rokaf_crawler.crawlers.TraineeSearcher(trainee_pydantic).search_trainee()
-        return JsonResponse(search_result, safe=False)
-    except TraineeNotFoundException as e:
-        return JsonResponse({'error': str(e)})
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception = True)
+        trainee_pydantic = rokaf_crawler.models.Trainee(**serializer.validated_data)
+
+        try:
+            search_result = rokaf_crawler.crawlers.TraineeSearcher(trainee_pydantic).search_trainee()
+            return JsonResponse(search_result, safe=False)
+        except TraineeNotFoundException as e:
+            return JsonResponse({'error': str(e)})
+
 
 class TraineeViewSet(mixins.CreateModelMixin,
                    mixins.RetrieveModelMixin,

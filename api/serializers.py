@@ -2,6 +2,17 @@ from datetime import datetime, date
 from rest_framework import serializers
 from api.models import *
 
+class TraineeSearchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Trainee
+        exclude = ['member_seq']
+
+    def to_internal_value(self, data):
+        ret = super().to_internal_value(data)
+        ret['birthday'] = ret['birthday'].strftime('%Y%m%d')
+        return ret
+
+
 class TraineeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trainee
