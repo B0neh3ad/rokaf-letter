@@ -31,39 +31,35 @@ load_dotenv(verbose=True)
     
 """
 
-@api_view(['GET'])
-@permission_classes([AllowAny, ])
-def gpt_test(request) -> JsonResponse:
-    """
-    주어진 text prompt에 대하여
-    gpt 3.5 model의 response를 출력합니다.
-    """
-    default_role = """
-    대한민국 공군 훈련병들의 인터넷 편지를 책임지는 AI 인편지기
-    """
-    role = request.GET.get('role', default_role)
-
-    default_prompt = """
-    매일 고생하며 훈련받는 공군 훈련병들을 위한 편지를 적어줘!
-    """
-    prompt = request.GET.get('prompt', default_prompt)
-
+class GptTest(APIView):
+    permission_classes = [AllowAny]
+    serializer_class = GptPromptSerializer
     client = OpenAI(
         api_key=os.getenv('OPENAI_API_KEY')
     )
 
-    query = client.chat.completions.create(
-        model='gpt-3.5-turbo',
-        messages=[
-            {'role':'system', 'content': role},
-            {'role':'user', 'content': prompt},
-        ],
-    )
-    choices = query.choices
-    print("candidate letters:", len(choices))
-    response = choices[0].message.content
+    def get_serializer(self, *args, **kwargs):
+        return self.serializer_class(*args, **kwargs)
 
-    return JsonResponse({'content': response})
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        query = self.client.chat.completions.create(
+            model='gpt-3.5-turbo',
+            messages=[
+                {'role': 'system', 'content': serializer.validated_data['role']},
+                {'role': 'user', 'content': serializer.validated_data['query_text']},
+            ],
+        )
+        choices = query.choices
+        for i, choice in enumerate(choices):
+            print(f"choice #{i}")
+            print(choice.message.content)
+        response = choices[0].message.content
+
+        return Response({'content': response})
+
 
 class TraineeSearchView(APIView):
     permission_classes = [AllowAny]
@@ -79,9 +75,9 @@ class TraineeSearchView(APIView):
 
         try:
             search_result = rokaf_crawler.crawlers.TraineeSearcher(trainee_pydantic).search_trainee()
-            return JsonResponse(search_result, safe=False)
+            return Response(search_result)
         except TraineeNotFoundException as e:
-            return JsonResponse({'error': str(e)})
+            return Response({'error': str(e)})
 
 
 class TraineeViewSet(mixins.CreateModelMixin,
