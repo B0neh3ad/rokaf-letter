@@ -2,6 +2,14 @@ from datetime import datetime, date
 from rest_framework import serializers
 from api.models import *
 
+class GptPromptSerializer(serializers.Serializer):
+    role = serializers.CharField(default="""
+        대한민국 공군 훈련병들의 인터넷 편지를 책임지는 AI 인편지기
+        """)
+    query_text = serializers.CharField(default="""
+        매일 고생하며 훈련받는 공군 훈련병들을 위한 편지를 적어줘!
+        """)
+
 class TraineeSearchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trainee
