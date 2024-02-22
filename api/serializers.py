@@ -41,10 +41,11 @@ class LetterDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Letter
         fields = '__all__'
+        read_only_fields = ['sender']
 
     def create(self, validated_data):
         # get sender and receiver
-        sender = validated_data.get('sender')
+        sender = self.context['request'].user
         receiver = validated_data.get('receiver')
 
         # set relationship field
