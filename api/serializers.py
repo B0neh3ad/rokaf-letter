@@ -21,12 +21,15 @@ class TraineeSearchSerializer(serializers.ModelSerializer):
         return ret
 
 
+# TODO: trainee 추가 시 user와의 관계 설정도 가능하도록 serializer, view 변경
 class TraineeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trainee
         fields = '__all__'
 
     def create(self, validated_data):
+        # 기존의 trainee를 즐겨찾기에 추가하기 위해서도 create가 호출될 수 있다.
+        # 이러한 경우에 동일 trainee가 중복 생성되는 것을 막기 위해 get_or_create를 사용한다.
         instance, _ = Trainee.objects.get_or_create(**validated_data)
         return instance
 
@@ -47,6 +50,10 @@ class LetterDetailSerializer(serializers.ModelSerializer):
         # get sender and receiver
         sender = self.context['request'].user
         receiver = validated_data.get('receiver')
+
+        assert TraineeToUser.objects.get(user=sender.id, trainee=receiver.id), (
+            '내가 추가한 훈련병에게만 편지를 보낼 수 있습니다.'
+        )
 
         # set relationship field
         relationship = TraineeToUser.objects.get(user=sender.id, trainee=receiver.id).relationship
@@ -75,6 +82,7 @@ class LetterDetailSerializer(serializers.ModelSerializer):
                 '예약 발송은 내일 이후의 날짜로만 가능합니다.'
             )
 
+        validated_data['sender'] = sender
         instance = Letter.objects.create(**validated_data)
         return instance
 
