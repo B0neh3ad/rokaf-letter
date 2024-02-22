@@ -46,3 +46,15 @@ class RegisterSerializer(serializers.ModelSerializer):
         validated_data.pop("password2")
         user = User.objects.create_user(**validated_data)
         return user
+
+class LoginSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(
+        required=True,
+    )
+    password = serializers.CharField(
+        write_only=True,
+        required=True,
+    )
+    class Meta:
+        model = User
+        fields = ["email", "password"]
