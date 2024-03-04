@@ -1,6 +1,7 @@
-from datetime import datetime, date
+from datetime import date
 from rest_framework import serializers
 from api.models import *
+import re
 
 class GptPromptSerializer(serializers.Serializer):
     role = serializers.CharField(default="""
@@ -40,6 +41,9 @@ class LetterListSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'contents', 'sender', 'status']
 
 
+def removeEscapedBlanks(s: str):
+    return re.sub(r"([\n\r\t\\])", " ", s).strip()
+
 class LetterDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Letter
@@ -53,8 +57,10 @@ class LetterDetailSerializer(serializers.ModelSerializer):
 
         # set relationship field
         try:
-            relationship = TraineeToUser.objects.get(user=sender.id, trainee=receiver.id).relationship
-            validated_data['relationship'] = relationship
+            curr_relationship = validated_data.get('relationship')
+            sender_relationship = TraineeToUser.objects.get(user=sender.id, trainee=receiver.id).relationship
+            if curr_relationship == "":
+                validated_data['relationship'] = sender_relationship if sender_relationship != "" else "친구/지인"
         except TraineeToUser.DoesNotExist:
             raise AssertionError('내가 추가한 훈련병에게만 편지를 보낼 수 있습니다.')
 
@@ -79,14 +85,15 @@ class LetterDetailSerializer(serializers.ModelSerializer):
             validated_data['sent_date'] = None
         # set date today when sending
         elif status == LetterStatus.SENDING.value:
-            validated_data['sent_date'] = datetime.today()
+            validated_data['sent_date'] = date.today()
         # validate reservation date
         elif status == LetterStatus.RESERVED.value:
-            assert validated_data['sent_date'] > datetime.today(), (
+            assert validated_data['sent_date'] > date.today(), (
                 '예약 발송은 내일 이후의 날짜로만 가능합니다.'
             )
 
         validated_data['sender'] = sender
+        validated_data['contents'] = removeEscapedBlanks(validated_data['contents'])
         instance = Letter.objects.create(**validated_data)
         return instance
 
@@ -107,5 +114,6 @@ class LetterDetailSerializer(serializers.ModelSerializer):
                 '예약 발송은 내일 이후의 날짜로만 가능합니다.'
             )
 
+        validated_data['contents'] = removeEscapedBlanks(validated_data['contents'])
         instance = super().update(instance, validated_data)
         return instance

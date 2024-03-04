@@ -113,7 +113,7 @@ class LetterSender:
         return {
             "siteId": agencies[self.trainee.agency_id].site_id,
             "command2": "writeEmail",
-            **self.letter,
+            **self.letter.dict(),
         }
 
     def get_letter_write_page_url(self) -> str:

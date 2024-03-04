@@ -51,7 +51,7 @@ class Trainee(models.Model):
     name = models.CharField(max_length=20)
     birthday = models.DateField()
     member_seq = models.CharField(max_length=100)
-    agency_id = IntEnumField(AgencyIndex, default=AgencyIndex.기본군사훈련단)
+    agency_id = IntEnumField(AgencyIndex, default=AgencyIndex.기본군사훈련단.value)
 
     def __str__(self):
         return self.name
@@ -135,7 +135,7 @@ class Letter(models.Model):
 class TraineeToUser(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     trainee = models.ForeignKey(Trainee, on_delete=models.CASCADE)
-    relationship = models.CharField(max_length=100, null=True)
+    relationship = models.CharField(max_length=100, blank=True)
 
     def __str__(self):
         return self.trainee.name + " TO " + self.user.email

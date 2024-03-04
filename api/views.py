@@ -1,13 +1,9 @@
-from django.http import JsonResponse
-from django.views.decorators.http import *
-
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action, permission_classes, api_view
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-import rokaf_crawler
 from rokaf_crawler.exceptions import *
 from .serializers import *
 from .services import *
@@ -15,6 +11,8 @@ from .services import *
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
+
+import re
 
 load_dotenv(verbose=True)
 
@@ -101,7 +99,7 @@ class TraineeViewSet(mixins.CreateModelMixin,
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         # create relationship
-        TraineeToUser.objects.create(user = request.user,
+        TraineeToUser.objects.get_or_create(user = request.user,
                                      trainee = trainee)
 
         headers = self.get_success_headers(serializer)
