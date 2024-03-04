@@ -18,18 +18,12 @@ import re
 
 load_dotenv(verbose=True)
 
-"""
-    trainee: CRUD 모두 구현(create, read, update, delete, retrieve) (O)
-    + GET trainees/search?name={name}&birthday={birthday}: 훈련병 목록 조회 (O)
-    
-    letter: CRUD 모두 구현(마찬가지. 단, list와 detail의 seriallizer 다름) (O)
-    + GET letters/received: (trainee 회원 한정) 받은 인편 조회 (테스트 필요)
-    
+"""   
     + GET trainees/{trainee_id}/letters: 특정 trainee의 인편 목록 조회 (구현 중)
-    
     + POST letters/{letter_id}: 단순 수정 완료인건지, 전송인건지, 예약인건지 구분해야 됨 (테스트 필요)
-    
 """
+
+# TODO: trainee 추가 시 front에서 호출할 traineeToUser 추가 api 만들기
 
 class GptTest(APIView):
     permission_classes = [AllowAny]
@@ -91,7 +85,6 @@ class TraineeViewSet(mixins.CreateModelMixin,
     def get_queryset(self):
         return self.request.user.like_trainees.all()
 
-    # TODO: trainee 추가 시 user와의 관계 설정도 가능하도록 serializer, view 변경
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception = True)
