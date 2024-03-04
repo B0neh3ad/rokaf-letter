@@ -12,6 +12,8 @@ import os
 from openai import OpenAI
 from dotenv import load_dotenv
 
+from django.forms.models import model_to_dict
+
 import re
 
 load_dotenv(verbose=True)
@@ -162,7 +164,7 @@ class LetterViewSet(viewsets.ModelViewSet):
         letter = Letter.objects.get(pk=self.kwargs['letter_id'])
         try:
             ret = letterService.send_letter(letter)
-            return Response(ret, status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_204_NO_CONTENT)
         except CrawlerException as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 

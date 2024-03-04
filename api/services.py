@@ -4,7 +4,7 @@ import rokaf_crawler
 
 class LetterService:
     @staticmethod
-    def send_letter(letter: Letter):
+    def send_letter(letter: Letter) -> Letter:
         letter_pydantic = rokaf_crawler.models.Letter(senderZipcode=letter.senderZipcode,
                                                       senderAddr1=letter.senderAddr1,
                                                       senderAddr2=letter.senderAddr2,

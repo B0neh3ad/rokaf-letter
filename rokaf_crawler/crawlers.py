@@ -134,7 +134,6 @@ class LetterSender:
 
         # DEBUG CODE
         print("인편 작성 페이지에 접속했습니다.\n url:", letter_write_page_url)
-        print("response:", letter_write_page_response)
         return letter_write_page_response
 
     def submit_letter(self, data, prev_response: requests.Response,
@@ -149,13 +148,6 @@ class LetterSender:
 
         # DEBUG CODE
         print("인편을 성공적으로 전송했습니다.")
-        print("[request]")
-        print("url:", letter_submit_page_url)
-        print("cookies:", prev_response.cookies)
-        print("data:", data)
-        print("headers:", additional_headers)
-
-        print("response:", letter_submit_page_response)
 
     def send_letter(self) -> None:
         letter_list_page_getter = LetterListPageGetter(self.trainee)
@@ -172,4 +164,3 @@ class LetterSender:
             http_request_body = self.create_request_form_data()
             # 편지 전송
             self.submit_letter(http_request_body, letter_write_page_response, session=s)
-
