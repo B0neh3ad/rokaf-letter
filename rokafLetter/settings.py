@@ -84,7 +84,7 @@ WSGI_APPLICATION = 'rokafLetter.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default="postgres://rokafletterdb_user:SvDrNPQ3rJM1D3zgbxlQGxjRKc0RKO6P@dpg-cnl99rmv3ddc73f6p4f0-a/rokafletterdb",
+        default="postgresql://js1044k:rladwls1tn!@localhost:5432/rokafletterdb",
         conn_max_age=600
     )
 }
