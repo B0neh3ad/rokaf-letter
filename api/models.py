@@ -92,7 +92,7 @@ class UserManager(BaseUserManager):
 class User(AbstractUser):
     objects = UserManager()
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.BigAutoField(primary_key=True, auto_created=True)
     is_trainee = models.BooleanField(default=False)
     as_trainee = models.OneToOneField(Trainee, null=True, on_delete=models.CASCADE, related_name="as_user")
 
