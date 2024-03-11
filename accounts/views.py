@@ -40,7 +40,13 @@ class LoginView(APIView):
         user = auth.authenticate(**serializer.validated_data)
         if user is not None:
             token, _ = Token.objects.get_or_create(user=user)
-            return JsonResponse({'token': token.key})
+            return JsonResponse({
+                'token': token.key,
+                'user': {
+                    'name': user.name,
+                    'email': user.email,
+                }
+            })
         return HttpResponse(status=status.HTTP_401_UNAUTHORIZED)
 
 class LogoutView(APIView):
