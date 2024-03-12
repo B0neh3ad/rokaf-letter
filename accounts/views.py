@@ -2,13 +2,13 @@ from django.contrib import auth
 from django.db.utils import IntegrityError
 from django.http import JsonResponse, HttpResponse
 from rest_framework import status
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView, RetrieveAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 
 from api.models import User
-from accounts.serializers import RegisterSerializer, LoginSerializer
+from accounts.serializers import RegisterSerializer, LoginSerializer, ProfileSerializer
 from rokafLetter import settings
 
 
@@ -40,13 +40,7 @@ class LoginView(APIView):
         user = auth.authenticate(**serializer.validated_data)
         if user is not None:
             token, _ = Token.objects.get_or_create(user=user)
-            return JsonResponse({
-                'token': token.key,
-                'user': {
-                    'name': user.name,
-                    'email': user.email,
-                }
-            })
+            return JsonResponse({'token': token.key})
         return HttpResponse(status=status.HTTP_401_UNAUTHORIZED)
 
 class LogoutView(APIView):
@@ -57,3 +51,10 @@ class LogoutView(APIView):
         request.user.auth_token.delete()
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
+class ProfileView(RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, *args, **kwargs):
+        token = request.user.auth_token
+        user = Token.objects.get(key=token).user
+        data = ProfileSerializer(user).data
+        return JsonResponse(data)
