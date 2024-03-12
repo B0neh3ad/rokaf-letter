@@ -44,13 +44,15 @@ INSTALLED_APPS = [
     'rest_framework',
     'api.apps.ApiConfig',
     'accounts.apps.AccountsConfig',
-    'rest_framework.authtoken'
+    'rest_framework.authtoken', # for token authentications
+    'corsheaders', # for allow frontend server to get response
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -143,3 +145,9 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ),
 }
+
+# CORS variables
+CORS_ORIGIN_ALLOW_ALL = False
+CORS_ORIGIN_WHITELIST = (
+    'http://127.0.0.1:5173', # local frontend server
+)
