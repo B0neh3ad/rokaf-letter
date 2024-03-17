@@ -14,7 +14,13 @@ from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
 
-load_dotenv(verbose=True)
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+
+if DEBUG:
+    load_dotenv(Path('.env.dev'), verbose=True)
+else:
+    load_dotenv(Path('.env.prod'), verbose=True)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,9 +31,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY')
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -84,9 +87,11 @@ WSGI_APPLICATION = 'rokafLetter.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+USE_PROD_DB = True
+
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.getenv('DATABASE_DEFAULT_URL'),
+        default=os.getenv('DATABASE_PROD_URL' if USE_PROD_DB else 'DATABASE_DEFAULT_URL'),
         conn_max_age=600
     )
 }

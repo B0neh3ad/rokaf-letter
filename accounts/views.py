@@ -39,6 +39,9 @@ class LoginView(APIView):
 
         user = auth.authenticate(**serializer.validated_data)
         if user is not None:
+            # get_or_create로 되어 있음
+            # 즉, 로그인된 상태에서 또 로그인 시도해도 토큰은 하나로 유지.
+            # 다만 그 상태에서 한 쪽에서 로그아웃을 하면 다 로그아웃 됨(LogoutView 참고)
             token, _ = Token.objects.get_or_create(user=user)
             return JsonResponse({'token': token.key})
         return HttpResponse(status=status.HTTP_401_UNAUTHORIZED)
